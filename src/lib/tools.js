@@ -5,6 +5,7 @@ import GoogleStrategy from "passport-google-oauth20";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
+import sgMail from "@sendgrid/mail"
 
 export const createAccessToken = (payload) =>
   new Promise((resolve, reject) =>
@@ -133,3 +134,51 @@ export const cloudinaryAvatarUploader = multer({
     },
   }),
 }).single("avatar");
+
+export const cloudinaryGameImagesUploader = multer({
+  storage: new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "bge/gameimages"
+    },
+  }),
+}).array("gameimages")
+
+
+sgMail.setApiKey(process.env.SENDGRID_KEY)
+
+export const sendAcceptedTradeEmails = async (trade) => {
+  console.log(trade)
+  const msg1 = {
+    to: trade.by.email,
+    from: process.env.SENDER_EMAIL,
+    subject: `Accepted Trade for ${trade.game.name}`,
+    html: `Hey, ${trade.by.name},
+            ${trade.to.name} has accepted your trade offer for their game ${trade.game.name}.
+            Please contact them via their mail ${trade.to.email} to finalize the trade.
+
+            Cheers,
+            BGE
+          `
+  }
+  const msg2 = {
+    to: trade.to.email,
+    from: process.env.SENDER_EMAIL,
+    subject: `Accepted Trade for ${trade.game.name}`,
+    html: `Hey, ${trade.to.name},
+            You have accepted ${trade.to.name}'s offer for your game ${trade.game.name}.
+            Please contact them via their mail ${trade.by.email} to finalize the trade.
+
+            Cheers,
+            BGE
+          `
+  }
+
+  try {
+    console.log("pling")
+    await sgMail.send(msg1)
+    await sgMail.send(msg2)
+  } catch (error) {
+    console.log(error)
+  }
+}

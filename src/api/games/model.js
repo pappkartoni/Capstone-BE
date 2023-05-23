@@ -11,7 +11,7 @@ const GamesSchema = new Schema(
         owner: {type: Schema.Types.ObjectId, ref: "user"},
         asking: {type: Number, required: true},
         variance: {type: Number, required: true},
-        availlable: {type: Boolean, required: true, default: true}
+        available: {type: Boolean, required: true, default: true}
     },
     {
         timestamps: true,
