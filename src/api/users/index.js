@@ -13,7 +13,7 @@ usersRouter.get("/googlecallback", passport.authenticate("google", { session: fa
     (req, res, next) => {
         try {
             res.redirect(
-                `${process.env.FE_URL}/?accessToken=${req.user.accessToken}&refreshToken=${req.user.refreshToken}`
+                `${process.env.FE_PROD_URL}/?accessToken=${req.user.accessToken}&refreshToken=${req.user.refreshToken}`
             ); //not sure about this one
         } catch (error) {
             next(error);
