@@ -2,14 +2,16 @@ import express from "express";
 import createError from "http-errors";
 import GamesModel from "./model.js";
 import createHttpError from "http-errors";
-import {jwtAuth} from "../../lib/tools.js";
+import {cloudinaryGameImagesUploader, jwtAuth} from "../../lib/tools.js";
 import passport from "passport";
+import q2m from "query-to-mongo"
 
 const gamesRouter = express.Router();
 
 gamesRouter.post("/", jwtAuth, async (req, res, next) => {
+    console.log("we are here when we shouldnt")
     try {
-        const newGame = new GamesModel({...req.body, user: req.user._id})
+        const newGame = new GamesModel({...req.body, owner: req.user._id})
         const { _id } = await newGame.save()
         res.status(201).send({ _id })
     } catch (error) {
@@ -24,7 +26,7 @@ gamesRouter.get("/", async (req, res, next) => {
             .limit(q.options.limit)
             .skip(q.options.skip)
             .sort(q.options.sort)
-            .populate({path: "owner", select: "name email avatar"})
+            .populate({path: "owner", select: "name email avatar location trades"})
         const total = await GamesModel.countDocuments(q.criteria)
 
         res.send({
@@ -40,7 +42,7 @@ gamesRouter.get("/", async (req, res, next) => {
 
 gamesRouter.get("/:gameId", jwtAuth, async (req, res, next) => {
     try {
-        const foundGame = await GamesModel.findById(req.params.gameId).populate({path: "owner", select: "name email avatar"})
+        const foundGame = await GamesModel.findById(req.params.gameId).populate({path: "owner", select: "name email avatar location trades"})
         if (foundGame) {
             res.send(foundGame)
         } else {
@@ -53,6 +55,7 @@ gamesRouter.get("/:gameId", jwtAuth, async (req, res, next) => {
 
 gamesRouter.put("/:gameId", jwtAuth, async (req, res, next) => {
     try {
+        console.log("we edit", req.body)
         const updatedGame = await GamesModel.findByIdAndUpdate(
             req.params.gameId,
             req.body,
@@ -84,11 +87,26 @@ gamesRouter.delete("/:gameId", jwtAuth, async (req, res, next) => {
 
 gamesRouter.get("/me/games", jwtAuth, async (req, res, next) => {
     try {
-        const ownGames = await GamesModel.find({owner: req.user._id}).populate({path: "owner", select: "name email avatar"})
+        const ownGames = await GamesModel.find({owner: req.user._id}).populate({path: "owner", select: "name email avatar location trades"})
         res.send(ownGames)
     } catch (error) {
         next(error)
     }
 })
+
+
+gamesRouter.post("/:gameId/images", jwtAuth, cloudinaryGameImagesUploader, async (req, res, next) => {
+    try {
+        const updatedGame = await GamesModel.findByIdAndUpdate(
+            req.params.gameId,
+            { images: req.files.map(f => f.path) },
+            { new: true, runValidators: true }
+            ).populate({path: "owner", select: "name email avatar location trades"})
+            res.send(updatedGame);
+        } catch (error) {
+            next(error);
+        }
+    }
+    );
 
 export default gamesRouter

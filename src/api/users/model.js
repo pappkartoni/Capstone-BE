@@ -3,6 +3,15 @@ import bcrypt from "bcrypt"
 
 const { Schema, model } = mongoose
 
+const locationSchema = new Schema(
+    {
+        name: {type: String, required: true},
+        lat: {type: Number, required: true},
+        lon: {type: Number, required: true},
+        country: {type: String, required: true}
+    }
+)
+
 const UsersSchema = new Schema(
   {
     name: { type: String, required: true },
@@ -10,7 +19,10 @@ const UsersSchema = new Schema(
     avatar: { type: String },
     password: { type: String },
     refreshToken: { type: String },
-    googleId: { type: String }
+    googleId: { type: String },
+    trades: { type: Number, default: 0 },
+    about: { type: String },
+    location: {type: locationSchema}
   },
   {
     timestamps: true,
