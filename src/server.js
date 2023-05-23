@@ -11,12 +11,11 @@ import offersRouter from "./api/offers/index.js"
 
 const server = Express()
 const port = process.env.PORT || 3001
-const whitelist = [process.env.FE_DEV_URL, process.env.BE_DEV_URL]
+const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL]
 
 passport.use("google", googleStrategy)
 
-server.use(cors())
-/* server.use(cors({
+server.use(cors({
     origin: (currentOrigin, corsNext) => {
         if (!currentOrigin || whitelist.indexOf(currentOrigin) !== -1) {
             corsNext(null, true)
@@ -24,7 +23,7 @@ server.use(cors())
             corsNext(createHttpError(400, `Origin ${currentOrigin} is not whitelisted.`))
         }
     }
-})) */
+}))
 
 server.use(Express.json())
 server.use(passport.initialize())
